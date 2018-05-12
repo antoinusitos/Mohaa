@@ -21,6 +21,14 @@ public class Player : NetworkBehaviour
         cameraToActivate.SetActive(true);
     }
 
+    private void Start()
+    {
+        if(isServer)
+        {
+            GameManager.GetInstance().PlayerJoin(this);
+        }
+    }
+
     //call on client
     [ClientRpc]
     public void RpcAttackWeaponToSocket(NetworkInstanceId playerID, NetworkInstanceId id)

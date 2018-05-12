@@ -9,24 +9,38 @@ public class GameManager : NetworkBehaviour
 
     public GameObject weaponPrefab = null;
 
+    public int playersToStart = 1;
+    public int maxPlayers = 1;
+    private int _currentNumberPlayer = 0;
+    private int _playersAlive = 0;
+
+    public void PlayerJoin(Player thePlayer)
+    {
+        _allPlayers[_currentNumberPlayer] = thePlayer;
+        GameObject go = Instantiate(weaponPrefab);
+        NetworkServer.Spawn(go);
+        thePlayer.SetWeapon(go.GetComponent<Weapon>());
+        thePlayer.RpcAttackWeaponToSocket(thePlayer.netId, go.GetComponent<Weapon>().netId);
+        _currentNumberPlayer++;
+        _playersAlive++;
+    }
+
     private void Start()
     {
         if (isServer)
-            StartCoroutine("StartGame");
+        {
+            _allPlayers = new Player[maxPlayers];
+        }
     }
 
-    private IEnumerator StartGame()
+    private static GameManager _instance = null;
+    public static GameManager GetInstance()
     {
-        yield return new WaitForSeconds(2.0f);
+        return _instance;
+    }
 
-        _allPlayers = FindObjectsOfType<Player>();
-
-        for(int i = 0; i < _allPlayers.Length; i++)
-        {
-            GameObject go = Instantiate(weaponPrefab);
-            NetworkServer.Spawn(go);
-            _allPlayers[i].SetWeapon(go.GetComponent<Weapon>());
-            _allPlayers[i].RpcAttackWeaponToSocket(_allPlayers[i].netId, go.GetComponent<Weapon>().netId);
-        }
+    private void Awake()
+    {
+        _instance = this;
     }
 }
