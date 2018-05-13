@@ -12,6 +12,15 @@ public class PlayerFire : NetworkBehaviour
     [SyncVar]
     public bool _dead = true;
 
+    //call on server
+    public void AttackWeaponToSocket()
+    {
+        currentWeapon.transform.SetParent(weaponSocket);
+        currentWeapon.transform.localPosition = Vector3.zero;
+        currentWeapon.AttachTo(weaponSocket);
+        return;
+    }
+
     //call on client
     [ClientRpc]
     public void RpcAttackWeaponToSocket(NetworkInstanceId playerID, NetworkInstanceId id)

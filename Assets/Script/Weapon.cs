@@ -26,14 +26,24 @@ public class Weapon : NetworkBehaviour
     public string weaponName = "NONE";
     public int damage = 10;
 
+    public Transform attachedTo = null;
+
     private void Start()
     {
         _currentAmmo = maxAmmo;
         _currentAmmoInMagazine = maxInMagazine;
     }
 
+    public void AttachTo(Transform transf)
+    {
+        attachedTo = transf;
+    }
+
     private void Update()
     {
+        if(attachedTo != null)
+            transform.position = attachedTo.position;
+
         if (!isServer) return;
 
         if(_isReloading)
@@ -56,6 +66,15 @@ public class Weapon : NetworkBehaviour
                 _canShoot = true;
             }
         }
+    }
+
+    public void Reset()
+    {
+        _currentAmmo = maxAmmo;
+        _currentAmmoInMagazine = maxInMagazine;
+        _canShoot = true;
+        _isReloading = false;
+        _currentFireRate = 0;
     }
 
     //call on server
@@ -100,6 +119,16 @@ public class Weapon : NetworkBehaviour
         _canShoot = false;
 
         _currentAmmoInMagazine--;
+
+        RaycastHit hit;
+        if(Physics.Raycast(transform.position, transform.forward, out hit, 5000))
+        {
+            DamageReceiver dr = hit.collider.GetComponent<DamageReceiver>();
+            if(dr != null)
+            {
+                dr.RedirectDamage(damage);
+            }
+        }
 
         if (_currentAmmoInMagazine <= 0)
         {

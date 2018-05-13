@@ -16,6 +16,12 @@ public class PlayerUI : MonoBehaviour
     public Text playersAlly = null;
     public Text playersAxis = null;
 
+    public Image factionImage = null;
+    public Sprite allySprite = null;
+    public Sprite axisSprite = null;
+
+    public Text winningText = null;
+
     //call on client
     public void SetTextAmmo(int currentAmmo, int totalAmmo)
     {
@@ -54,8 +60,25 @@ public class PlayerUI : MonoBehaviour
     public void ChooseSide(int newFaction)
     {
         if(newFaction == 0)
+        {
+            factionImage.sprite = allySprite;
             GetComponentInParent<Player>().SetFaction(EPlayerFaction.ALLY);
+        }
         else
+        {
+            factionImage.sprite = axisSprite;
             GetComponentInParent<Player>().SetFaction(EPlayerFaction.AXIS);
+        }
+    }
+
+    public void ShowWin(bool newState, EPlayerFaction winningFaction)
+    {
+        if(newState)
+        {
+            winningText.gameObject.SetActive(true);
+            winningText.text = winningFaction + " Win the Game !";
+        }
+        else
+            winningText.gameObject.SetActive(false);
     }
 }

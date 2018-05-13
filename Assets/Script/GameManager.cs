@@ -10,19 +10,24 @@ public class GameManager : NetworkBehaviour
     public GameObject weaponPrefab = null;
 
     public int playersToStart = 1;
-    public int maxPlayers = 1;
-    private int _currentNumberPlayer = 0;
+    public int maxPlayers = 2;
+    protected int _currentNumberPlayer = 0;
 
     [SyncVar]
-    private int _allyPlayers = 0;
+    protected int _allyPlayers = 0;
     [SyncVar]
-    private int _allyPlayersAlive = 0;
+    protected int _allyPlayersAlive = 0;
     [SyncVar]
-    private int _axisPlayers = 0;
+    protected int _axisPlayers = 0;
     [SyncVar]
-    private int _axisPlayersAlive = 0;
+    protected int _axisPlayersAlive = 0;
 
-    public string gameName = "MME";
+    public string gameName = "GameModeTest";
+
+    public bool teamFire = false;
+
+    public float timeToRestart = 5;
+    public bool autoRestart = true;
 
     //call on server
     public void PlayerJoin(Player thePlayer)
@@ -31,18 +36,49 @@ public class GameManager : NetworkBehaviour
         GameObject go = Instantiate(weaponPrefab);
         NetworkServer.Spawn(go);
         thePlayer.GetPlayerFire().SetWeapon(go.GetComponent<Weapon>());
+        thePlayer.GetPlayerFire().AttackWeaponToSocket();
         thePlayer.GetPlayerFire().RpcAttackWeaponToSocket(thePlayer.netId, go.GetComponent<Weapon>().netId);
         _currentNumberPlayer++;
+        OnPlayerPostJoin(thePlayer);
     }
 
-    private void Start()
+    //call on server
+    public virtual void OnPlayerPostJoin(Player thePlayer)
+    {
+
+    }
+
+    protected void Start()
     {
         if (isServer)
         {
             _allPlayers = new Player[maxPlayers];
         }
+        GameModeStart();
     }
 
+    //call on server
+    public virtual void GameModeStart()
+    {
+
+    }
+
+    //call on server
+    public void SetTeamVictory(EPlayerFaction winningFaction)
+    {
+        for(int i = 0; i < _allPlayers.Length; i++)
+        {
+            if(_allPlayers[i] != null)
+            {
+                _allPlayers[i].RpcShowWin(true, winningFaction);
+            }
+        }
+
+        if(autoRestart)
+            RestartGame();
+    }
+
+    //call on server
     public void PlayerJoinTeam(Player thePlayer)
     {
         if (thePlayer.playerFaction == EPlayerFaction.ALLY)
@@ -54,6 +90,34 @@ public class GameManager : NetworkBehaviour
             _axisPlayers++;
         }
 
+        OnPlayerReady(thePlayer);
+    }
+
+    //call on server
+    public void RestartGame()
+    {
+        StartCoroutine("Restarting");
+    }
+    
+    protected IEnumerator Restarting()
+    {
+        yield return new WaitForSeconds(timeToRestart);
+        _allyPlayersAlive = _allyPlayers;
+        _axisPlayersAlive = _axisPlayers;
+        for (int i = 0; i < _allPlayers.Length; i++)
+        {
+            if (_allPlayers[i] != null)
+            {
+                _allPlayers[i].RpcShowWin(false, EPlayerFaction.NONE);
+                _allPlayers[i].Respawn();
+            }
+        }
+    }
+
+    //call on server
+    public virtual void OnPlayerReady(Player thePlayer)
+    {
+        //check if player can spawn
         thePlayer.Respawn();
         if (thePlayer.playerFaction == EPlayerFaction.ALLY)
         {
@@ -63,6 +127,20 @@ public class GameManager : NetworkBehaviour
         {
             _axisPlayersAlive++;
         }
+    }
+
+    //call on server
+    public virtual void OnPlayerDeath(Player thePlayer)
+    {
+        if (thePlayer.playerFaction == EPlayerFaction.ALLY)
+        {
+            _allyPlayersAlive--;
+        }
+        else if (thePlayer.playerFaction == EPlayerFaction.AXIS)
+        {
+            _axisPlayersAlive--;
+        }
+        thePlayer.Respawn();
     }
 
     public int GetPlayersAlly()
@@ -85,13 +163,13 @@ public class GameManager : NetworkBehaviour
         return _axisPlayersAlive;
     }
 
-    private static GameManager _instance = null;
+    protected static GameManager _instance = null;
     public static GameManager GetInstance()
     {
         return _instance;
     }
 
-    private void Awake()
+    protected void Awake()
     {
         _instance = this;
     }

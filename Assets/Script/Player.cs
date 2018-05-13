@@ -32,6 +32,18 @@ public class Player : NetworkBehaviour
         }
     }
 
+    [ClientRpc]
+    public void RpcShowWin(bool newState, EPlayerFaction winningFaction)
+    {
+        if(isLocalPlayer)
+        {
+            if(playerUI != null)
+            {
+                playerUI.ShowWin(newState, winningFaction);
+            }
+        }
+    }
+
     private void Start()
     {
         //Add a component to take damage and apply it on player life (for collisions)
@@ -60,6 +72,11 @@ public class Player : NetworkBehaviour
         if (_playerCamera != null)
         {
             _playerCamera.SetDead(false);
+        }
+        if (_playerLife != null)
+        {
+            _playerLife.SetIsDead(false);
+            _playerLife.RefillFullLife();
         }
     }
 
@@ -107,6 +124,7 @@ public class Player : NetworkBehaviour
     //Call on server
     public void Dead()
     {
+        GameManager.GetInstance().OnPlayerDeath(this);
         _dead = true;
         if (_playerMovement != null)
         {
@@ -119,6 +137,10 @@ public class Player : NetworkBehaviour
         if(_playerCamera != null)
         {
             _playerCamera.SetDead(true);
+        }
+        if (_playerLife != null)
+        {
+            _playerLife.SetIsDead(true);
         }
     }
 

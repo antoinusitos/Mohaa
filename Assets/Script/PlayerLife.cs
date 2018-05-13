@@ -35,4 +35,18 @@ public class PlayerLife : NetworkBehaviour
     {
         _dead = newState;
     }
+
+    //call on server
+    public void RefillFullLife()
+    {
+        _currentLife = maxLife;
+    }
+
+    //call on server
+    public void RefillLife(int amount)
+    {
+        _currentLife += amount;
+        if (_currentLife > maxLife)
+            _currentLife = maxLife;
+    }
 }
