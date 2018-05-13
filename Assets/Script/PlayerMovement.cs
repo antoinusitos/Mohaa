@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
 
+//TODO : crouch system and animations
+
 public class PlayerMovement : NetworkBehaviour
 {
     public SPlayerMovementTweak[] playerTweak = null;
