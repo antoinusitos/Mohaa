@@ -26,6 +26,9 @@ public class Data : MonoBehaviour
     public KeyCode leftKeycode = KeyCode.D;
     public KeyCode fireKeycode = KeyCode.Mouse0;
     public KeyCode reload = KeyCode.R;
+    public KeyCode leanLeft = KeyCode.A;
+    public KeyCode leanRight = KeyCode.E;
+    public KeyCode action = KeyCode.F;
 
     private static Data _instance = null;
     public static Data GetInstance()

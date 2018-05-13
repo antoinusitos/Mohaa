@@ -469,6 +469,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   weaponPrefab: {fileID: 1528560925151178, guid: 5a860fac28209714baeaa5a229401126,
     type: 2}
+  playersToStart: 1
+  maxPlayers: 1
 --- !u!4 &1106410795
 Transform:
   m_ObjectHideFlags: 0

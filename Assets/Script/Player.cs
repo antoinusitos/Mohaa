@@ -40,8 +40,9 @@ public class Player : NetworkBehaviour
         {
             if(weapons[i].netId == id)
             {
-                weapons[i].transform.SetParent(weaponSocket);
-                weapons[i].transform.localPosition = Vector3.zero;
+                currentWeapon = weapons[i];
+                currentWeapon.transform.SetParent(weaponSocket);
+                currentWeapon.transform.localPosition = Vector3.zero;
                 return;
             }
         }
@@ -61,16 +62,37 @@ public class Player : NetworkBehaviour
             {
                 if (currentWeapon != null)
                 {
-                    currentWeapon.CmdFire();
+                    CmdFire();
                 }
             }
             else if (Input.GetKeyDown(Data.GetInstance().reload))
             {
                 if (currentWeapon != null)
                 {
-                    currentWeapon.CmdReload();
+                    CmdReload();
                 }
             }
+        }
+    }
+
+
+    //call on client
+    [Command]
+    public void CmdFire()
+    {
+        if (currentWeapon != null)
+        {
+            currentWeapon.Fire();
+        }
+    }
+
+    //call on client
+    [Command]
+    public void CmdReload()
+    {
+        if (currentWeapon != null)
+        {
+            currentWeapon.Reload();
         }
     }
 

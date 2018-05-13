@@ -23,6 +23,8 @@ public class Weapon : NetworkBehaviour
     [SyncVar]
     private bool _canShoot = true;
 
+    public string weaponName = "NONE";
+
     private void Start()
     {
         _currentAmmo = maxAmmo;
@@ -80,20 +82,6 @@ public class Weapon : NetworkBehaviour
         if (_currentAmmo <= 0 || _currentAmmoInMagazine == maxInMagazine) return;
 
         _isReloading = true;
-    }
-
-    //call on client
-    [Command]
-    public void CmdFire()
-    {
-        Fire();
-    }
-
-    //call on client
-    [Command]
-    public void CmdReload()
-    {
-        Reload();
     }
 
     //call on server

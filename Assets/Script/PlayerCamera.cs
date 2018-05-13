@@ -11,8 +11,12 @@ public class PlayerCamera: NetworkBehaviour
     public Transform allBody = null;
     public Transform upperBodyFPS = null;
     public Transform upperBodyTPS = null;
+    public Transform leanTPS = null;
+    public Transform leanFPS = null;
 
     private float _currentAngle = 0;
+
+    public float leanAngle = 30.0f;
 
     private void Start()
     {
@@ -39,5 +43,22 @@ public class PlayerCamera: NetworkBehaviour
         upperBodyTPS.rotation = Quaternion.Euler(-_currentAngle, prevAngle.y, prevAngle.z);
 
         allBody.Rotate(0, x, 0);
+
+        Vector3 prevleanAngle = upperBodyFPS.rotation.eulerAngles;
+        if (Input.GetKey(Data.GetInstance().leanLeft))
+        {
+            leanFPS.rotation = Quaternion.Euler(prevleanAngle.x, prevleanAngle.y, leanAngle);
+            leanTPS.rotation = Quaternion.Euler(prevleanAngle.x, prevleanAngle.y, leanAngle);
+        }
+        else if (Input.GetKey(Data.GetInstance().leanRight))
+        {
+            leanFPS.rotation = Quaternion.Euler(prevleanAngle.x, prevleanAngle.y, -leanAngle);
+            leanTPS.rotation = Quaternion.Euler(prevleanAngle.x, prevleanAngle.y, -leanAngle);
+        }
+        else
+        {
+            leanFPS.rotation = Quaternion.Euler(prevleanAngle.x, prevleanAngle.y, 0.0f);
+            leanTPS.rotation = Quaternion.Euler(prevleanAngle.x, prevleanAngle.y, 0.0f);
+        }
     }
 }

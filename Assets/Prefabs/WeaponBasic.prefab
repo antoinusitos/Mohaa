@@ -144,3 +144,4 @@ MonoBehaviour:
   maxInMagazine: 10
   timeToReload: 3
   fireRate: 0.1
+  weaponName: Rifle
