@@ -471,6 +471,7 @@ MonoBehaviour:
     type: 2}
   playersToStart: 1
   maxPlayers: 1
+  gameName: MME
 --- !u!4 &1106410795
 Transform:
   m_ObjectHideFlags: 0

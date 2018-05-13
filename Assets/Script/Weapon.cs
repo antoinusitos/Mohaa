@@ -24,6 +24,7 @@ public class Weapon : NetworkBehaviour
     private bool _canShoot = true;
 
     public string weaponName = "NONE";
+    public int damage = 10;
 
     private void Start()
     {

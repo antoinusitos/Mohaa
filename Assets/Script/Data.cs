@@ -16,6 +16,13 @@ public struct SPlayerMovementTweak
     public float speed;
 }
 
+public enum EPlayerFaction
+{
+    NONE,
+    ALLY,
+    AXIS,
+}
+
 public class Data : MonoBehaviour
 {
     public bool DEBUG = false;

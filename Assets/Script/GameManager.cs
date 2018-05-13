@@ -12,17 +12,27 @@ public class GameManager : NetworkBehaviour
     public int playersToStart = 1;
     public int maxPlayers = 1;
     private int _currentNumberPlayer = 0;
-    private int _playersAlive = 0;
 
+    [SyncVar]
+    private int _allyPlayers = 0;
+    [SyncVar]
+    private int _allyPlayersAlive = 0;
+    [SyncVar]
+    private int _axisPlayers = 0;
+    [SyncVar]
+    private int _axisPlayersAlive = 0;
+
+    public string gameName = "MME";
+
+    //call on server
     public void PlayerJoin(Player thePlayer)
     {
         _allPlayers[_currentNumberPlayer] = thePlayer;
         GameObject go = Instantiate(weaponPrefab);
         NetworkServer.Spawn(go);
-        thePlayer.SetWeapon(go.GetComponent<Weapon>());
-        thePlayer.RpcAttackWeaponToSocket(thePlayer.netId, go.GetComponent<Weapon>().netId);
+        thePlayer.GetPlayerFire().SetWeapon(go.GetComponent<Weapon>());
+        thePlayer.GetPlayerFire().RpcAttackWeaponToSocket(thePlayer.netId, go.GetComponent<Weapon>().netId);
         _currentNumberPlayer++;
-        _playersAlive++;
     }
 
     private void Start()
@@ -31,6 +41,48 @@ public class GameManager : NetworkBehaviour
         {
             _allPlayers = new Player[maxPlayers];
         }
+    }
+
+    public void PlayerJoinTeam(Player thePlayer)
+    {
+        if (thePlayer.playerFaction == EPlayerFaction.ALLY)
+        {
+            _allyPlayers++;
+        }
+        else if (thePlayer.playerFaction == EPlayerFaction.AXIS)
+        {
+            _axisPlayers++;
+        }
+
+        thePlayer.Respawn();
+        if (thePlayer.playerFaction == EPlayerFaction.ALLY)
+        {
+            _allyPlayersAlive++;
+        }
+        else if (thePlayer.playerFaction == EPlayerFaction.AXIS)
+        {
+            _axisPlayersAlive++;
+        }
+    }
+
+    public int GetPlayersAlly()
+    {
+        return _allyPlayers;
+    }
+
+    public int GetPlayersAllyAlive()
+    {
+        return _allyPlayersAlive;
+    }
+
+    public int GetPlayersAxis()
+    {
+        return _axisPlayers;
+    }
+
+    public int GetPlayersAxisAlive()
+    {
+        return _axisPlayersAlive;
     }
 
     private static GameManager _instance = null;

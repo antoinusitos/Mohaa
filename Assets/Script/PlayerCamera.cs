@@ -16,11 +16,17 @@ public class PlayerCamera: NetworkBehaviour
 
     private float _currentAngle = 0;
 
-    public float leanAngle = 30.0f;
+    public float leanAngle = 20.0f;
 
-    private void Start()
+    [SyncVar]
+    private bool _dead = true;
+
+    public void SetCursorLocked(bool newState)
     {
-        Cursor.lockState = CursorLockMode.Locked;
+        if (newState)
+            Cursor.lockState = CursorLockMode.Locked;
+        else
+            Cursor.lockState = CursorLockMode.None;
     }
 
     private void Update()
@@ -28,6 +34,8 @@ public class PlayerCamera: NetworkBehaviour
         if (!isLocalPlayer) return;
 
         if (isServer && !Data.GetInstance().DEBUG) return;
+
+        if (_dead) return;
 
         float x = Input.GetAxis("Mouse X") * Time.deltaTime * horizontalSpeed;
         float z = Input.GetAxis("Mouse Y") * Time.deltaTime * verticalSpeed;
@@ -60,5 +68,10 @@ public class PlayerCamera: NetworkBehaviour
             leanFPS.rotation = Quaternion.Euler(prevleanAngle.x, prevleanAngle.y, 0.0f);
             leanTPS.rotation = Quaternion.Euler(prevleanAngle.x, prevleanAngle.y, 0.0f);
         }
+    }
+
+    public void SetDead(bool newState)
+    {
+        _dead = newState;
     }
 }

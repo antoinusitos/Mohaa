@@ -5,13 +5,19 @@ using UnityEngine.Networking;
 
 public class Player : NetworkBehaviour
 {
-    public Weapon currentWeapon = null;
-
     public GameObject cameraToActivate = null;
 
     public PlayerUI playerUI = null;
+    private PlayerLife _playerLife = null;
+    private PlayerMovement _playerMovement = null;
+    private PlayerFire _playerFire = null;
+    private PlayerCamera _playerCamera = null;
 
-    public Transform weaponSocket = null;
+    [SyncVar]
+    public EPlayerFaction playerFaction = EPlayerFaction.NONE;
+
+    [SyncVar]
+    private bool _dead = true;
 
     public override void OnStartLocalPlayer()
     {
@@ -19,32 +25,41 @@ public class Player : NetworkBehaviour
 
         Camera.main.gameObject.SetActive(false);
         cameraToActivate.SetActive(true);
+
+        if (playerUI != null)
+        {
+            playerUI.SetGameName(GameManager.GetInstance().gameName);
+        }
     }
 
     private void Start()
     {
-        if(isServer)
+        //Add a component to take damage and apply it on player life (for collisions)
+        _playerLife = GetComponentInChildren<PlayerLife>();
+        _playerMovement = GetComponent<PlayerMovement>();
+        _playerFire = GetComponent<PlayerFire>();
+        _playerCamera = GetComponent<PlayerCamera>();
+        if (isServer)
         {
             GameManager.GetInstance().PlayerJoin(this);
         }
     }
 
-    //call on client
-    [ClientRpc]
-    public void RpcAttackWeaponToSocket(NetworkInstanceId playerID, NetworkInstanceId id)
+    //call on server
+    public void Respawn()
     {
-        if (netId != playerID) return;
-
-        Weapon[] weapons = FindObjectsOfType<Weapon>();
-        for(int i = 0; i < weapons.Length; i++)
+        _dead = false;
+        if (_playerMovement != null)
         {
-            if(weapons[i].netId == id)
-            {
-                currentWeapon = weapons[i];
-                currentWeapon.transform.SetParent(weaponSocket);
-                currentWeapon.transform.localPosition = Vector3.zero;
-                return;
-            }
+            _playerMovement.SetCanMove(true);
+        }
+        if (_playerFire != null)
+        {
+            _playerFire.SetDead(false);
+        }
+        if (_playerCamera != null)
+        {
+            _playerCamera.SetDead(false);
         }
     }
 
@@ -54,50 +69,61 @@ public class Player : NetworkBehaviour
         {
             if (playerUI != null)
             {
-                if (currentWeapon != null)
-                    playerUI.SetTextAmmo(currentWeapon.GetCurrentAmmo(), currentWeapon.GetTotalAmmo());
-            }
-
-            if (Input.GetKey(Data.GetInstance().fireKeycode))
-            {
-                if (currentWeapon != null)
+                if (_playerFire != null && _playerFire.GetCurrentWeapon() != null)
                 {
-                    CmdFire();
+                    playerUI.SetTextAmmo(_playerFire.GetCurrentWeapon().GetCurrentAmmo(), _playerFire.GetCurrentWeapon().GetTotalAmmo());
+                    playerUI.SetTextWeaponName(_playerFire.GetCurrentWeapon().weaponName);
                 }
-            }
-            else if (Input.GetKeyDown(Data.GetInstance().reload))
-            {
-                if (currentWeapon != null)
+                if(_playerLife != null)
                 {
-                    CmdReload();
+                    playerUI.SetPlayerLife(_playerLife.GetCurrentLife());
                 }
+
+                playerUI.SetPlayers(true, GameManager.GetInstance().GetPlayersAllyAlive(), GameManager.GetInstance().GetPlayersAlly());
+                playerUI.SetPlayers(false, GameManager.GetInstance().GetPlayersAxisAlive(), GameManager.GetInstance().GetPlayersAxis());
             }
+
+            if (_dead) return;
+
+            //put interactions here with F
         }
     }
-
-
+    
     //call on client
-    [Command]
-    public void CmdFire()
+    public void SetFaction(EPlayerFaction newFaction)
     {
-        if (currentWeapon != null)
+        if (_playerCamera != null)
+            _playerCamera.SetCursorLocked(true);
+        CmdSetFaction(newFaction);
+    }
+
+    [Command]
+    public void CmdSetFaction(EPlayerFaction newFaction)
+    {
+        playerFaction = newFaction;
+        GameManager.GetInstance().PlayerJoinTeam(this);
+    }
+
+    //Call on server
+    public void Dead()
+    {
+        _dead = true;
+        if (_playerMovement != null)
         {
-            currentWeapon.Fire();
+            _playerMovement.SetCanMove(false);
+        }
+        if (_playerFire != null)
+        {
+            _playerFire.SetDead(true);
+        }
+        if(_playerCamera != null)
+        {
+            _playerCamera.SetDead(true);
         }
     }
 
-    //call on client
-    [Command]
-    public void CmdReload()
+    public PlayerFire GetPlayerFire()
     {
-        if (currentWeapon != null)
-        {
-            currentWeapon.Reload();
-        }
-    }
-
-    public void SetWeapon(Weapon newWeapon)
-    {
-        currentWeapon = newWeapon;
+        return _playerFire;
     }
 }

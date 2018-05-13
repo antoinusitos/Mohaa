@@ -15,6 +15,9 @@ public class PlayerMovement : NetworkBehaviour
 
     private Transform _transform = null;
 
+    [SyncVar]
+    private bool _canMove = false;
+
     private void Start()
     {
         _transform = transform;
@@ -40,6 +43,8 @@ public class PlayerMovement : NetworkBehaviour
 
         if (isServer && !Data.GetInstance().DEBUG) return;
 
+        if (!_canMove) return;
+
         if (Input.GetKey(Data.GetInstance().forwardKeycode))
         {
             rigidBody.MovePosition(rigidBody.position + _transform.forward * playerSpeed * _currentSpeed * Time.deltaTime);
@@ -57,5 +62,11 @@ public class PlayerMovement : NetworkBehaviour
         {
             rigidBody.MovePosition(rigidBody.position + _transform.right * playerSpeed * _currentSpeed * Time.deltaTime);
         }
+    }
+
+    //call on server
+    public void SetCanMove(bool newState)
+    {
+        _canMove = newState;
     }
 }
