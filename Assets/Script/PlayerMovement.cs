@@ -69,4 +69,17 @@ public class PlayerMovement : NetworkBehaviour
     {
         _canMove = newState;
     }
+
+    [ClientRpc]
+    public void RpcForcePosition(Vector3 newPos)
+    {
+        if(isLocalPlayer)
+            rigidBody.MovePosition(newPos);
+    }
+
+    //call on client
+    public void ForcePosition(Vector3 newPos)
+    {
+        rigidBody.MovePosition(newPos);
+    }
 }

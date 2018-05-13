@@ -29,6 +29,9 @@ public class GameManager : NetworkBehaviour
     public float timeToRestart = 5;
     public bool autoRestart = true;
 
+    protected GameObject[] allyRespawnPoints = null;
+    protected GameObject[] axisRespawnPoints = null;
+
     //call on server
     public void PlayerJoin(Player thePlayer)
     {
@@ -53,6 +56,8 @@ public class GameManager : NetworkBehaviour
         if (isServer)
         {
             _allPlayers = new Player[maxPlayers];
+            allyRespawnPoints = GameObject.FindGameObjectsWithTag("AllySpawn");
+            axisRespawnPoints = GameObject.FindGameObjectsWithTag("AxisSpawn");
         }
         GameModeStart();
     }
@@ -102,14 +107,14 @@ public class GameManager : NetworkBehaviour
     protected IEnumerator Restarting()
     {
         yield return new WaitForSeconds(timeToRestart);
-        _allyPlayersAlive = _allyPlayers;
-        _axisPlayersAlive = _axisPlayers;
+        _allyPlayersAlive = 0;
+        _axisPlayersAlive = 0;
         for (int i = 0; i < _allPlayers.Length; i++)
         {
             if (_allPlayers[i] != null)
             {
                 _allPlayers[i].RpcShowWin(false, EPlayerFaction.NONE);
-                _allPlayers[i].Respawn();
+                OnPlayerReady(_allPlayers[i]);
             }
         }
     }
@@ -122,10 +127,12 @@ public class GameManager : NetworkBehaviour
         if (thePlayer.playerFaction == EPlayerFaction.ALLY)
         {
             _allyPlayersAlive++;
+            thePlayer.GetPlayerMovement().RpcForcePosition(allyRespawnPoints[Random.Range(0, allyRespawnPoints.Length)].transform.position);
         }
         else if (thePlayer.playerFaction == EPlayerFaction.AXIS)
         {
             _axisPlayersAlive++;
+            thePlayer.GetPlayerMovement().RpcForcePosition(axisRespawnPoints[Random.Range(0, axisRespawnPoints.Length)].transform.position);
         }
     }
 

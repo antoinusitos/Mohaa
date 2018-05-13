@@ -148,4 +148,9 @@ public class Player : NetworkBehaviour
     {
         return _playerFire;
     }
+
+    public PlayerMovement GetPlayerMovement()
+    {
+        return _playerMovement;
+    }
 }
