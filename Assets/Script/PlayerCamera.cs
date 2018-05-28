@@ -31,7 +31,7 @@ public class PlayerCamera: NetworkBehaviour
 
     private void Update()
     {
-        if (!isLocalPlayer) return;
+        if (!isLocalPlayer && !hasAuthority) return;
 
         if (isServer && !Data.GetInstance().DEBUG) return;
 

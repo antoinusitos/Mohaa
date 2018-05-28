@@ -41,7 +41,7 @@ public class PlayerMovement : NetworkBehaviour
 
     private void FixedUpdate()
     {
-        if (!isLocalPlayer) return;
+        if (!isLocalPlayer || !hasAuthority) return;
 
         if (isServer && !Data.GetInstance().DEBUG) return;
 

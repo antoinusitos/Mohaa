@@ -11,6 +11,7 @@ public class GameManager : NetworkBehaviour
 
     public int playersToStart = 1;
     public int maxPlayers = 2;
+    [SyncVar]
     protected int _currentNumberPlayer = 0;
 
     [SyncVar]
@@ -32,9 +33,15 @@ public class GameManager : NetworkBehaviour
     protected GameObject[] allyRespawnPoints = null;
     protected GameObject[] axisRespawnPoints = null;
 
+    public Player localPlayer = null; //only client side.
+    public PlayerNetwork localPlayerNetwork = null; //only client side.
+
+    public GameObject playerPrefab = null;
+
     //call on server
-    public void PlayerJoin(Player thePlayer)
+    public bool PlayerJoin(Player thePlayer)
     {
+        if (_currentNumberPlayer >= _allPlayers.Length) return false;
         _allPlayers[_currentNumberPlayer] = thePlayer;
         GameObject go = Instantiate(weaponPrefab);
         NetworkServer.Spawn(go);
@@ -43,6 +50,7 @@ public class GameManager : NetworkBehaviour
         thePlayer.GetPlayerFire().RpcAttackWeaponToSocket(thePlayer.netId, go.GetComponent<Weapon>().netId);
         _currentNumberPlayer++;
         OnPlayerPostJoin(thePlayer);
+        return true;
     }
 
     //call on server
@@ -150,6 +158,50 @@ public class GameManager : NetworkBehaviour
         thePlayer.Respawn();
     }
 
+    //call client Side
+    public void CreatePlayer(int teamSide, int characterIndex, NetworkInstanceId playerAskingID)
+    {
+        CmdCreatePlayer(teamSide, characterIndex, playerAskingID);
+    }
+
+    //[Command]
+    public void CmdCreatePlayer(int teamSide, int characterIndex, NetworkInstanceId playerAskingID)
+    {
+        GameObject spawnedPlayer = Instantiate(playerPrefab, Vector3.zero, Quaternion.identity);
+
+        NetworkServer.Spawn(spawnedPlayer);
+
+        Player p = spawnedPlayer.GetComponent<Player>();
+
+        PlayerObserver[] pos = FindObjectsOfType<PlayerObserver>();
+        for (int i = 0; i < pos.Length; i++)
+        {
+            if (pos[i].netId == playerAskingID)
+            {
+                p.GetComponent<NetworkIdentity>().AssignClientAuthority(pos[i].connectionToClient);
+            }
+        }
+
+        RpcTakeContol(p.netId, playerAskingID);
+        p.Respawn();
+    }
+
+    [ClientRpc]
+    protected void RpcTakeContol(NetworkInstanceId theId, NetworkInstanceId playerAskingID)
+    {
+        if(localPlayerNetwork.netId == playerAskingID)
+        {
+            Player[] ps = FindObjectsOfType<Player>();
+            for(int i = 0; i < ps.Length; i++)
+            {
+                if(ps[i].netId == theId)
+                {
+                    localPlayer = ps[i];
+                }
+            }
+        }
+    }
+
     public int GetPlayersAlly()
     {
         return _allyPlayers;
@@ -169,6 +221,13 @@ public class GameManager : NetworkBehaviour
     {
         return _axisPlayersAlive;
     }
+
+    public int GetNumberCurrentPlayers()
+    {
+        return _currentNumberPlayer;
+    }
+
+    //------------------------------------------------------------------------------------
 
     protected static GameManager _instance = null;
     public static GameManager GetInstance()

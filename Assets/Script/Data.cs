@@ -36,6 +36,9 @@ public class Data : MonoBehaviour
     public KeyCode leanLeft = KeyCode.A;
     public KeyCode leanRight = KeyCode.E;
     public KeyCode action = KeyCode.F;
+    public KeyCode jump = KeyCode.Space;
+    public KeyCode menu = KeyCode.Escape;
+    public KeyCode validate = KeyCode.Return;
 
     private static Data _instance = null;
     public static Data GetInstance()

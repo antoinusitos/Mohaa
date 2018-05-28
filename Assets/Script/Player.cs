@@ -19,9 +19,11 @@ public class Player : NetworkBehaviour
     [SyncVar]
     private bool _dead = true;
 
-    public override void OnStartLocalPlayer()
+    public override void OnStartAuthority()
     {
-        base.OnStartLocalPlayer();
+        base.OnStartAuthority();
+
+        Debug.Log("lol");
 
         Camera.main.gameObject.SetActive(false);
         cameraToActivate.SetActive(true);
@@ -29,6 +31,13 @@ public class Player : NetworkBehaviour
         if (playerUI != null)
         {
             playerUI.SetGameName(GameManager.GetInstance().gameName);
+        }
+
+        GameManager.GetInstance().localPlayer = this;
+
+        if(_playerLife == null)
+        {
+            Init();
         }
     }
 
@@ -45,6 +54,14 @@ public class Player : NetworkBehaviour
     }
 
     private void Start()
+    {
+        if (_playerLife == null)
+        {
+            Init();
+        }
+    }
+
+    private void Init()
     {
         //Add a component to take damage and apply it on player life (for collisions)
         _playerLife = GetComponentInChildren<PlayerLife>();
