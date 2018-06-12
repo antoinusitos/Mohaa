@@ -29,6 +29,7 @@ public class GameManager : NetworkBehaviour
 
     public float timeToRestart = 5;
     public bool autoRestart = true;
+    public bool restartWhenEnoughPlayers = true;
 
     protected GameObject[] allyRespawnPoints = null;
     protected GameObject[] axisRespawnPoints = null;
@@ -38,10 +39,17 @@ public class GameManager : NetworkBehaviour
 
     public GameObject playerPrefab = null;
 
+    [SyncVar]
+    protected int _axisScore = 0;
+    [SyncVar]
+    protected int _allyScore = 0;
+
+
     //call on server
     public bool PlayerJoin(Player thePlayer)
     {
         if (_currentNumberPlayer >= _allPlayers.Length) return false;
+
         _allPlayers[_currentNumberPlayer] = thePlayer;
         GameObject go = Instantiate(weaponPrefab);
         NetworkServer.Spawn(go);
@@ -57,6 +65,16 @@ public class GameManager : NetworkBehaviour
     public virtual void OnPlayerPostJoin(Player thePlayer)
     {
 
+    }
+
+    public int GetAllyScore()
+    {
+        return _allyScore;
+    }
+
+    public int GetAxisScore()
+    {
+        return _axisScore;
     }
 
     protected void Start()
@@ -103,7 +121,10 @@ public class GameManager : NetworkBehaviour
             _axisPlayers++;
         }
 
-        OnPlayerReady(thePlayer);
+        if (restartWhenEnoughPlayers && _allyPlayers > 0 && _axisPlayers > 0)
+            RestartGame();
+        else
+            OnPlayerReady(thePlayer);
     }
 
     //call on server
@@ -158,20 +179,54 @@ public class GameManager : NetworkBehaviour
         thePlayer.Respawn();
     }
 
-    //call client Side
-    public void CreatePlayer(int teamSide, int characterIndex, NetworkInstanceId playerAskingID)
+    //call on server
+    public void ShowDeathLog(string playerDead, string playerKilling, string part = "Body")
     {
-        CmdCreatePlayer(teamSide, characterIndex, playerAskingID);
+        for (int i = 0; i < _allPlayers.Length; i++)
+        {
+            if (_allPlayers[i] != null)
+            {
+                _allPlayers[i].RpcShowLog(playerKilling + " shot " + playerDead + " in " + part);
+                return;
+            }
+        }
     }
 
-    //[Command]
-    public void CmdCreatePlayer(int teamSide, int characterIndex, NetworkInstanceId playerAskingID)
+    //call on server
+    public void ShowLog(string log)
+    {
+        for (int i = 0; i < _allPlayers.Length; i++)
+        {
+            if (_allPlayers[i] != null)
+            {
+                _allPlayers[i].RpcShowLog(log);
+                return;
+            }
+        }
+    }
+
+    // call on server
+    public void CreatePlayer(int teamSide, int characterIndex, NetworkInstanceId playerAskingID)
     {
         GameObject spawnedPlayer = Instantiate(playerPrefab, Vector3.zero, Quaternion.identity);
 
         NetworkServer.Spawn(spawnedPlayer);
 
         Player p = spawnedPlayer.GetComponent<Player>();
+
+        /*PlayerNetwork[] playerNetworks = FindObjectsOfType<PlayerNetwork>();
+        for(int i = 0; i < playerNetworks.Length; i++)
+        {
+            if (playerNetworks[i].netId == playerAskingID)
+            {
+                p.playerObserver = playerNetworks[i].gameObject;
+                break;
+            }
+        }*/
+
+        p.Init(playerAskingID);
+
+        p.playerUI.ChooseSide(teamSide);
 
         PlayerObserver[] pos = FindObjectsOfType<PlayerObserver>();
         for (int i = 0; i < pos.Length; i++)
@@ -197,6 +252,7 @@ public class GameManager : NetworkBehaviour
                 if(ps[i].netId == theId)
                 {
                     localPlayer = ps[i];
+                    localPlayer.Init(playerAskingID);
                 }
             }
         }

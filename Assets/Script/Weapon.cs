@@ -105,7 +105,7 @@ public class Weapon : NetworkBehaviour
     }
 
     //call on server
-    public void Fire()
+    public void Fire(string sender)
     {
         if (!isServer) return;
 
@@ -126,7 +126,7 @@ public class Weapon : NetworkBehaviour
             DamageReceiver dr = hit.collider.GetComponent<DamageReceiver>();
             if(dr != null)
             {
-                dr.RedirectDamage(damage);
+                dr.RedirectDamage(damage, sender);
             }
         }
 

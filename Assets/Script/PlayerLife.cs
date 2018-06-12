@@ -11,14 +11,22 @@ public class PlayerLife : NetworkBehaviour
 
     private bool _dead = true;
 
+    private PlayerNetwork _playerNetwork = null;
+
+    public void SetPlayerNetwork(PlayerNetwork newPlayerNetwork)
+    {
+        _playerNetwork = newPlayerNetwork;
+    }
+
     //call on server
-    public void TakeDamage(int damage)
+    public void TakeDamage(int damage, string sender)
     {
         if (_dead) return;
 
         _currentLife -= damage;
         if(_currentLife <= 0)
         {
+            GameManager.GetInstance().ShowDeathLog(_playerNetwork.playerName, sender);
             _currentLife = 0;
             _dead = true;
             GetComponentInParent<Player>().Dead();

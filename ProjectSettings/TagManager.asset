@@ -6,6 +6,7 @@ TagManager:
   tags:
   - AllySpawn
   - AxisSpawn
+  - GameLog
   layers:
   - Default
   - TransparentFX

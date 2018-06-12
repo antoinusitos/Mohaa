@@ -41,7 +41,7 @@ public class PlayerMovement : NetworkBehaviour
 
     private void FixedUpdate()
     {
-        if (!isLocalPlayer || !hasAuthority) return;
+        if (!isLocalPlayer && !localPlayerAuthority) return;
 
         if (isServer && !Data.GetInstance().DEBUG) return;
 
@@ -75,13 +75,21 @@ public class PlayerMovement : NetworkBehaviour
     [ClientRpc]
     public void RpcForcePosition(Vector3 newPos)
     {
-        if(isLocalPlayer)
+        if(isLocalPlayer || localPlayerAuthority)
+        {
             rigidBody.MovePosition(newPos);
+        }
     }
 
     //call on client
     public void ForcePosition(Vector3 newPos)
     {
         rigidBody.MovePosition(newPos);
+    }
+
+    //call on server
+    public void Respawn()
+    {
+
     }
 }

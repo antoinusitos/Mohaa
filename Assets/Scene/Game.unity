@@ -388,6 +388,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   faction: 1
+  isAvailable: 1
 --- !u!4 &730027960
 Transform:
   m_ObjectHideFlags: 0
@@ -515,6 +516,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   faction: 1
+  isAvailable: 1
 --- !u!4 &768253188
 Transform:
   m_ObjectHideFlags: 0
@@ -556,6 +558,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   faction: 2
+  isAvailable: 1
 --- !u!4 &906812328
 Transform:
   m_ObjectHideFlags: 0
@@ -678,6 +681,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   faction: 2
+  isAvailable: 1
 --- !u!4 &1493952655
 Transform:
   m_ObjectHideFlags: 0
@@ -894,6 +898,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   faction: 2
+  isAvailable: 1
 --- !u!4 &1934796673
 Transform:
   m_ObjectHideFlags: 0
@@ -935,6 +940,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   faction: 1
+  isAvailable: 1
 --- !u!4 &2110503160
 Transform:
   m_ObjectHideFlags: 0

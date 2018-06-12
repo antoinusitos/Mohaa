@@ -9,8 +9,15 @@ public class PlayerFire : NetworkBehaviour
 
     public Weapon currentWeapon = null;
 
+    private PlayerNetwork _playerNetwork = null;
+
     [SyncVar]
     public bool _dead = true;
+
+    public void SetPlayerNetwork(PlayerNetwork newPlayerNetwork)
+    {
+        _playerNetwork = newPlayerNetwork;
+    }
 
     //call on server
     public void AttackWeaponToSocket()
@@ -40,13 +47,20 @@ public class PlayerFire : NetworkBehaviour
         }
     }
 
+    //call on server
+    public void Reset()
+    {
+        if (currentWeapon != null)
+            currentWeapon.Reset();
+    }
+
     //call on client
     [Command]
-    public void CmdFire()
+    public void CmdFire(string sender)
     {
         if (currentWeapon != null)
         {
-            currentWeapon.Fire();
+            currentWeapon.Fire(sender);
         }
     }
 
@@ -77,7 +91,7 @@ public class PlayerFire : NetworkBehaviour
 
     private void Update()
     {
-        if (isLocalPlayer)
+        if (isLocalPlayer || localPlayerAuthority)
         {
             if (_dead) return;
 
@@ -85,7 +99,7 @@ public class PlayerFire : NetworkBehaviour
             {
                 if (currentWeapon != null)
                 {
-                    CmdFire();
+                    CmdFire(_playerNetwork.playerName);
                 }
             }
             else if (Input.GetKeyDown(Data.GetInstance().reload))

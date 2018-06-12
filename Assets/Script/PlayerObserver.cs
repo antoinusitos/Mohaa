@@ -14,6 +14,17 @@ public class PlayerObserver : NetworkBehaviour
 
     public GameObject playerPrefab = null;
 
+    public GameObject consoleUI = null;
+
+    public PlayerNetwork playerNetwork = null;
+
+    public override void OnStartLocalPlayer()
+    {
+        base.OnStartLocalPlayer();
+
+        consoleUI.SetActive(true);
+    }
+
     private void Update()
     {
         if(
@@ -57,12 +68,12 @@ public class PlayerObserver : NetworkBehaviour
     //call client side
     protected void CreatePlayer()
     {
-        CmdCreatePlayer(_teamSide, _characterIndex, GetComponent<PlayerNetwork>().netId);
+        CmdCreatePlayer(_teamSide, _characterIndex, playerNetwork.netId);
     }
 
     [Command]
     protected void CmdCreatePlayer(int teamSide, int characterIndex, NetworkInstanceId playerAskingID)
     {
-        GameManager.GetInstance().CmdCreatePlayer(teamSide, characterIndex, GetComponent<PlayerNetwork>().netId);
+        GameManager.GetInstance().CreatePlayer(teamSide, characterIndex, playerAskingID);
     }
 }

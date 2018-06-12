@@ -12,6 +12,7 @@ public class Player : NetworkBehaviour
     private PlayerMovement _playerMovement = null;
     private PlayerFire _playerFire = null;
     private PlayerCamera _playerCamera = null;
+    private PlayerNetwork _playerNetwork = null;
 
     [SyncVar]
     public EPlayerFaction playerFaction = EPlayerFaction.NONE;
@@ -19,11 +20,13 @@ public class Player : NetworkBehaviour
     [SyncVar]
     private bool _dead = true;
 
+    private bool _init = false;
+
+    public GameObject playerObserver = null;
+
     public override void OnStartAuthority()
     {
         base.OnStartAuthority();
-
-        Debug.Log("lol");
 
         Camera.main.gameObject.SetActive(false);
         cameraToActivate.SetActive(true);
@@ -34,11 +37,6 @@ public class Player : NetworkBehaviour
         }
 
         GameManager.GetInstance().localPlayer = this;
-
-        if(_playerLife == null)
-        {
-            Init();
-        }
     }
 
     [ClientRpc]
@@ -53,24 +51,34 @@ public class Player : NetworkBehaviour
         }
     }
 
-    private void Start()
+    public void Init(NetworkInstanceId playerAskingID)
     {
-        if (_playerLife == null)
-        {
-            Init();
-        }
-    }
+        if (_init) return;
 
-    private void Init()
-    {
-        //Add a component to take damage and apply it on player life (for collisions)
+        _init = true;
+
+        PlayerNetwork[] playerNetworks = FindObjectsOfType<PlayerNetwork>();
+        for (int i = 0; i < playerNetworks.Length; i++)
+        {
+            if (playerNetworks[i].netId == playerAskingID)
+            {
+                playerObserver = playerNetworks[i].gameObject;
+                break;
+            }
+        }
+
+        _playerNetwork = playerObserver.GetComponent<PlayerNetwork>();
         _playerLife = GetComponentInChildren<PlayerLife>();
+        _playerLife.SetPlayerNetwork(_playerNetwork);
         _playerMovement = GetComponent<PlayerMovement>();
         _playerFire = GetComponent<PlayerFire>();
+        _playerFire.SetPlayerNetwork(_playerNetwork);
         _playerCamera = GetComponent<PlayerCamera>();
+        GameManager.GetInstance().localPlayerNetwork = _playerNetwork;
         if (isServer)
         {
             GameManager.GetInstance().PlayerJoin(this);
+            GameManager.GetInstance().ShowLog(_playerNetwork.playerName + " joined the fight !");
         }
     }
 
@@ -81,6 +89,16 @@ public class Player : NetworkBehaviour
         if (_playerMovement != null)
         {
             _playerMovement.SetCanMove(true);
+            RespawnPoint[] respawns = FindObjectsOfType<RespawnPoint>();
+            for(int i = 0; i < respawns.Length; i++)
+            {
+                if(respawns[i].faction == playerFaction && respawns[i].isAvailable)
+                {
+                    respawns[i].isAvailable = false;
+                    _playerMovement.RpcForcePosition(respawns[i].transform.position);
+                    break;
+                }
+            }
         }
         if (_playerFire != null)
         {
@@ -99,7 +117,7 @@ public class Player : NetworkBehaviour
 
     private void Update()
     {
-        if (isLocalPlayer)
+        if (isLocalPlayer || localPlayerAuthority)
         {
             if (playerUI != null)
             {
@@ -117,25 +135,33 @@ public class Player : NetworkBehaviour
                 playerUI.SetPlayers(false, GameManager.GetInstance().GetPlayersAxisAlive(), GameManager.GetInstance().GetPlayersAxis());
             }
 
+            if (Input.GetKeyDown(KeyCode.P))
+                CmdSendLog("lol");
+
             if (_dead) return;
 
             //put interactions here with F
         }
     }
-    
+
+    private void CmdSendLog(string log)
+    {
+        GameManager.GetInstance().ShowLog(log);
+    }
+
     //call on client
     public void SetFaction(EPlayerFaction newFaction)
     {
         if (_playerCamera != null)
             _playerCamera.SetCursorLocked(true);
-        CmdSetFaction(newFaction);
-    }
-
-    [Command]
-    public void CmdSetFaction(EPlayerFaction newFaction)
-    {
         playerFaction = newFaction;
         GameManager.GetInstance().PlayerJoinTeam(this);
+    }
+
+    [ClientRpc]
+    public void RpcShowLog(string log)
+    {
+        playerUI.ShowLog(log);
     }
 
     //Call on server

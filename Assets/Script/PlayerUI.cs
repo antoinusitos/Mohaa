@@ -22,6 +22,8 @@ public class PlayerUI : MonoBehaviour
 
     public Text winningText = null;
 
+    private GameLog _gameLog = null;
+
     //call on client
     public void SetTextAmmo(int currentAmmo, int totalAmmo)
     {
@@ -51,20 +53,29 @@ public class PlayerUI : MonoBehaviour
     public void SetPlayers(bool ally, int playersAlive, int playersTotal)
     {
         if(ally)
-            playersAlly.text = playersAlive + " / " + playersTotal;
+            playersAlly.text = playersAlive + " / " + playersTotal + " [" + GameManager.GetInstance().GetAllyScore() + "]";
         else
-            playersAxis.text = playersAlive + " / " + playersTotal;
+            playersAxis.text = playersAlive + " / " + playersTotal + " [" + GameManager.GetInstance().GetAxisScore() + "]";
     }
 
     //call on client
+    public void ShowLog(string log)
+    {
+        if (_gameLog == null)
+            _gameLog = FindObjectOfType<GameLog>();
+
+        _gameLog.ShowLog(log);
+    }
+
+    //call on server
     public void ChooseSide(int newFaction)
     {
-        if(newFaction == 0)
+        if(newFaction == 1)
         {
             factionImage.sprite = allySprite;
             GetComponentInParent<Player>().SetFaction(EPlayerFaction.ALLY);
         }
-        else
+        else if (newFaction == 2)
         {
             factionImage.sprite = axisSprite;
             GetComponentInParent<Player>().SetFaction(EPlayerFaction.AXIS);
