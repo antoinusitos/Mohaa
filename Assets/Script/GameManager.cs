@@ -51,11 +51,11 @@ public class GameManager : NetworkBehaviour
         if (_currentNumberPlayer >= _allPlayers.Length) return false;
 
         _allPlayers[_currentNumberPlayer] = thePlayer;
-        GameObject go = Instantiate(weaponPrefab);
+        /*GameObject go = Instantiate(weaponPrefab);
         NetworkServer.Spawn(go);
         thePlayer.GetPlayerFire().SetWeapon(go.GetComponent<Weapon>());
         thePlayer.GetPlayerFire().AttackWeaponToSocket();
-        thePlayer.GetPlayerFire().RpcAttackWeaponToSocket(thePlayer.netId, go.GetComponent<Weapon>().netId);
+        thePlayer.GetPlayerFire().RpcAttackWeaponToSocket(thePlayer.netId, go.GetComponent<Weapon>().netId);*/
         _currentNumberPlayer++;
         OnPlayerPostJoin(thePlayer);
         return true;

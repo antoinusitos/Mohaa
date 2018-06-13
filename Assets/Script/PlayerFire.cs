@@ -20,16 +20,16 @@ public class PlayerFire : NetworkBehaviour
     }
 
     //call on server
-    public void AttackWeaponToSocket()
+    /*public void AttackWeaponToSocket()
     {
         currentWeapon.transform.SetParent(weaponSocket);
         currentWeapon.transform.localPosition = Vector3.zero;
         currentWeapon.AttachTo(weaponSocket);
         return;
-    }
+    }*/
 
     //call on client
-    [ClientRpc]
+    /*[ClientRpc]
     public void RpcAttackWeaponToSocket(NetworkInstanceId playerID, NetworkInstanceId id)
     {
         if (netId != playerID) return;
@@ -45,7 +45,7 @@ public class PlayerFire : NetworkBehaviour
                 return;
             }
         }
-    }
+    }*/
 
     //call on server
     public void Reset()
@@ -54,17 +54,17 @@ public class PlayerFire : NetworkBehaviour
             currentWeapon.Reset();
     }
 
-    //call on client
     [Command]
     public void CmdFire(string sender)
     {
+        Debug.Log("isserver ?" + isServer);
         if (currentWeapon != null)
         {
+            Debug.Log("isserver 2 ?" + isServer);
             currentWeapon.Fire(sender);
         }
     }
 
-    //call on client
     [Command]
     public void CmdReload()
     {

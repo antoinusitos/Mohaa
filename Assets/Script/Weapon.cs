@@ -107,14 +107,21 @@ public class Weapon : NetworkBehaviour
     //call on server
     public void Fire(string sender)
     {
+        Debug.Log("isserver 3 ?" + isServer);
+
+        Debug.Log("lol");
         if (!isServer) return;
 
+        Debug.Log("lol1"); 
         if (_isReloading) return;
 
+        Debug.Log("lol2"); 
         if (!_canShoot) return;
 
+        Debug.Log("lol3"); 
         if (_currentAmmoInMagazine <= 0) return;
 
+        Debug.Log("lol4"); 
         _currentFireRate = 0;
         _canShoot = false;
 
